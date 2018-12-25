@@ -11,11 +11,13 @@
 (function() {
     'use strict';
 
+    //在此修改默认设置
     var autopost = false;//是否开启自动提交，默认关闭
     var timeout = 30;//刷新时间，默认30秒
     var logtime = 1;//几次刷新输出一次日志，默认1次
+
     var t0 = 0;//上一次设置TimeOut的时间
-    var lt0 = -1;//刷新次数
+    var lt0 = 0;//刷新次数
 
     //检查变量是否存在
     function isset(o){return typeof o !== 'undefined'}
@@ -38,8 +40,18 @@
         lt0=(lt0+1)%logtime;
         updateConfig(true);
         guolv(1);//调用查询按钮的事件
-        if(lt0==0) log("已刷新");
+        if(lt0==0) log(`已刷新${logtime}次`);
     }
+    //Watch Dog
+    function watchDog(){
+        var timestamp = new Date().getTime();
+        if(timestamp>t0+2*timeout*1000){//检查上一次的Timeout时间是否已超过2倍延时
+            log("Watch Dog已尝试重连")
+            setTimeout(refreshList,2000);//设置刷新时间
+            t0=timestamp;
+        }
+    }
+    setInterval(watchDog,5*timeout*1000);//定时检查Timeout状态
 
     log("脚本正在运行");
     updateConfig(false);
@@ -51,10 +63,10 @@
         var count=$(".ace-checkbox-2").size();
         if(count==0){
             var timestamp = new Date().getTime();
-            if(timestamp>t0+1000){//每隔一段时间再设置新的TimeOut
+            if(timestamp>t0+1000){//每隔一段时间再设置新的Timeout
                 setTimeout(refreshList,timeout*1000);//设置刷新时间
+                t0=timestamp;
             }
-            t0=timestamp;
         }else{
             if(!$(".ace-checkbox-2")[0].checked){
                 $(".ace-checkbox-2")[0].click();//选择CheckBox
