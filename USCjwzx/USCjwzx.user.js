@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         USC jwzx
 // @namespace    https://github.com/xfl03
-// @version      0.1
+// @version      0.1.1
 // @description  USC jwzx
 // @author       xfl03
 // @match        http://jwzx.usc.edu.cn/Student/ScoreReview
