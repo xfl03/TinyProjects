@@ -4,8 +4,8 @@ import requests
 username = 'username'
 password = 'password'
 
-r = requests.get('http://login.cup.edu.cn', timeout=10)
-if 'succeed' not in r.url:
+r = requests.get('http://login.cup.edu.cn/ac_detect.php?ac_id=1&', timeout=10)
+if 'srun_portal_pc_succeed.php' not in r.text:
     payload = {
         'action': 'login',
         'ac_id': '1',
