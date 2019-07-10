@@ -6,7 +6,7 @@ import time
 username = 'USERNAME'
 password = 'PASSWORD'
 
-f = open('D:\CUPWiFiLogin.log', 'a', encoding='utf-8')
+f = open('CUPWiFiLogin.log', 'a', encoding='utf-8')
 t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 f.write(t)
 r = requests.get('http://login.cup.edu.cn/ac_detect.php?ac_id=1&', timeout=10)
