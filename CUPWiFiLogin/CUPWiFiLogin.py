@@ -1,9 +1,14 @@
+# -*- coding: UTF-8 -*-
 import requests
+import time
 
 # Change username and password below
-username = 'username'
-password = 'password'
+username = 'USERNAME'
+password = 'PASSWORD'
 
+f = open('D:\CUPWiFiLogin.log', 'a', encoding='utf-8')
+t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+f.write(t)
 r = requests.get('http://login.cup.edu.cn/ac_detect.php?ac_id=1&', timeout=10)
 if 'srun_portal_pc_succeed.php' not in r.text:
     payload = {
@@ -23,3 +28,8 @@ if 'srun_portal_pc_succeed.php' not in r.text:
                       Chrome/75.0.3770.100 Safari/537.36'
     }
     requests.post('http://login.cup.edu.cn/srun_portal_pc.php', data=payload, headers=headers, timeout=10)
+    f.write(' 检测到未登录，已自动登录。\n')
+else:
+    f.write(' 已登录。\n')
+f.close()
+exit(0)
