@@ -2,7 +2,6 @@ import SimpleCTokenizer.Status.*
 import java.io.*
 import java.util.*
 
-
 class SimpleCTokenizer(code: InputStream) {
     private var br = BufferedReader(InputStreamReader(code))
 
@@ -183,7 +182,8 @@ class SimpleCTokenizer(code: InputStream) {
                         status = WAIT_FUNCTION
                     }
                     else -> {
-                        //继续读取参数
+                        //继续读取参数，补充一个空格
+                        buffer.append(' ')
                         buffer.append(c)
                         status = IN_ARGUMENT
                     }
