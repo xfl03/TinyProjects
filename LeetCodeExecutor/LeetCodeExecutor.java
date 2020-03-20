@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class LeetCodeExecutor {
     static Method method = null;
@@ -24,9 +25,60 @@ public class LeetCodeExecutor {
         }
         if (method == null) {
             System.err.println(String.format("No method found for '%s'.", data.toTypeString()));
-            return null;
+            return "";
         }
-        return data.invoke(method, solution);
+        Object ret = data.invoke(method, solution);
+        if (ret instanceof ListNode) {
+            StringBuilder builder = new StringBuilder();
+            return printListNode(builder, (ListNode) ret).toString();
+        }
+        if (ret.getClass().isArray()) {
+            StringBuilder builder = new StringBuilder();
+            return printArray(builder, ret).toString();
+        }
+        return ret.toString();
+    }
+
+    static StringBuilder printListNode(StringBuilder builder, ListNode node) {
+        while (node!= null) {
+            builder.append(node.val);
+            if (node.next != null) {
+                builder.append("->");
+            }
+            node = node.next;
+        }
+        return builder;
+    }
+
+    static StringBuilder printArray(StringBuilder builder, Object array) {
+        builder.append("[");
+        if (array instanceof int[][]) {
+            int[][] arr = (int[][]) array;
+            for (int i = 0; i < arr.length; ++i) {
+                printArray(builder, arr[i]);
+                if (i != arr.length - 1) {
+                    builder.append(", ");
+                }
+            }
+        } else if (array instanceof int[]) {
+            int[] arr = (int[]) array;
+            for (int i = 0; i < arr.length; ++i) {
+                builder.append(arr[i]);
+                if (i != arr.length - 1) {
+                    builder.append(", ");
+                }
+            }
+        } else {
+            Object[] arr = (Object[]) array;
+            for (int i = 0; i < arr.length; ++i) {
+                builder.append(arr[i]);
+                if (i != arr.length - 1) {
+                    builder.append(", ");
+                }
+            }
+        }
+        builder.append("]");
+        return builder;
     }
 
     static void initMethod(Data data) {
@@ -53,7 +105,9 @@ public class LeetCodeExecutor {
         READING_STRING,
         WAITING_ARRAY,
         READING_INT_ARRAY,
-        READING_STRING_ARRAY
+        READING_STRING_ARRAY,
+        WAITING_LIST,
+        READING_INT_LIST
     }
 
     static Data toData(String s) {
@@ -61,8 +115,12 @@ public class LeetCodeExecutor {
         Status status = Status.WAITING;
 
         StringBuilder buffer = new StringBuilder();
-        List<Object> listBuffer = new ArrayList<>();
+
+        int arrayDepth = 0;
+        Stack<List<Object>> listBuffer = new Stack<>();
+        List<Integer> listBuffer2 = new ArrayList<>();
         Object[] typeBuffer = new Object[0];
+
         for (char c : s.toCharArray()) {
             switch (status) {
                 case WAITING:
@@ -71,7 +129,8 @@ public class LeetCodeExecutor {
                         buffer = new StringBuilder();
                     } else if (c == '[') {
                         status = Status.WAITING_ARRAY;
-                        listBuffer.clear();
+                        listBuffer.add(new ArrayList<>());
+                        arrayDepth = 1;
                     } else if (c == '-' || isNum(c)) {
                         status = Status.READING_INT;
                         buffer = new StringBuilder();
@@ -88,6 +147,10 @@ public class LeetCodeExecutor {
                 case READING_INT:
                     if (isNum(c)) {
                         buffer.append(c);
+                    } else if (c == '-') {
+                        listBuffer2.clear();
+                        listBuffer2.add(Integer.parseInt(buffer.toString()));
+                        status = Status.WAITING_LIST;
                     } else {
                         data.add(Integer.parseInt(buffer.toString()));
                         status = Status.WAITING;
@@ -106,9 +169,11 @@ public class LeetCodeExecutor {
                         status = Status.READING_STRING_ARRAY;
                         buffer = new StringBuilder();
                         typeBuffer = new String[0];
+                    } else if (c == '[') {
+                        arrayDepth = 2;
+                        listBuffer.add(new ArrayList<>());
                     } else if (c == ']') {
-                        data.add(listBuffer.toArray(typeBuffer));
-                        status = Status.WAITING;
+                        status = arrayStore(arrayDepth, listBuffer, data, typeBuffer);
                     } else if (c == '-' || isNum(c)) {
                         status = Status.READING_INT_ARRAY;
                         buffer = new StringBuilder();
@@ -120,10 +185,9 @@ public class LeetCodeExecutor {
                     if (isNum(c)) {
                         buffer.append(c);
                     } else {
-                        listBuffer.add(Integer.parseInt(buffer.toString()));
+                        listBuffer.peek().add(Integer.parseInt(buffer.toString()));
                         if (c == ']') {
-                            data.add(listBuffer.toArray(typeBuffer));
-                            status = Status.WAITING;
+                            status = arrayStore(arrayDepth, listBuffer, data, typeBuffer);
                         } else {
                             status = Status.WAITING_ARRAY;
                         }
@@ -131,18 +195,98 @@ public class LeetCodeExecutor {
                     break;
                 case READING_STRING_ARRAY:
                     if (c == '"') {
-                        listBuffer.add(buffer.toString());
+                        listBuffer.peek().add(buffer.toString());
                         status = Status.WAITING_ARRAY;
                     } else {
                         buffer.append(c);
                     }
                     break;
+                case WAITING_LIST:
+                    if (c == '-' || isNum(c)) {
+                        status = Status.READING_INT_LIST;
+                        buffer = new StringBuilder();
+                        buffer.append(c);
+                    }
+                    break;
+                case READING_INT_LIST:
+                    if (isNum(c)) {
+                        buffer.append(c);
+                    } else if (c == '-') {
+                        listBuffer2.add(Integer.parseInt(buffer.toString()));
+                        status = Status.WAITING_LIST;
+                    } else {
+                        listBuffer2.add(Integer.parseInt(buffer.toString()));
+                        data.add(toListNode(listBuffer2));
+                        status = Status.WAITING;
+                    }
             }
         }
         if (status == Status.READING_INT) {
             data.add(Integer.parseInt(buffer.toString()));
+        } else if (status == Status.READING_INT_LIST) {
+            listBuffer2.add(Integer.parseInt(buffer.toString()));
+            data.add(toListNode(listBuffer2));
         }
         return data;
+    }
+
+    static Status arrayStore(int arrayDepth, Stack<List<Object>> listBuffer, Data data, Object[] typeBuffer) {
+        if (listBuffer.size() == 1) {
+            List<Object> list = listBuffer.pop();
+            if (arrayDepth == 1) {
+                if (typeBuffer.getClass().getComponentType() == Integer.class) {
+                    int[] arr = new int[list.size()];
+                    for (int j = 0; j < arr.length; ++j) {
+                        arr[j] = (int) list.get(j);
+                    }
+                    data.add(arr);
+                } else {
+                    data.add(list.toArray(typeBuffer));
+                }
+            } else {
+                if (typeBuffer.getClass().getComponentType() == Integer.class) {
+                    int[][] arr = new int[list.size()][];
+                    for (int i = 0; i < arr.length; ++i) {
+                        List<Object> list2 = (List<Object>) list.get(i);
+                        int[] arr2 = new int[list2.size()];
+                        for (int j = 0; j < arr2.length; ++j) {
+                            arr2[j] = (int) list2.get(j);
+                        }
+                        arr[i] = arr2;
+                    }
+                    data.add(arr);
+                } else if (typeBuffer.getClass().getComponentType() == String.class) {
+                    String[][] arr = new String[list.size()][];
+                    for (int i = 0; i < arr.length; ++i) {
+                        List<Object> list2 = (List<Object>) list.get(i);
+                        arr[i] = (String[]) list2.toArray(typeBuffer);
+                    }
+                    data.add(arr);
+                } else {
+                    System.out.println(typeBuffer.getClass().getComponentType());
+                }
+            }
+            return Status.WAITING;
+        } else {
+            List<Object> list2 = listBuffer.pop();
+            listBuffer.peek().add(list2);
+            return Status.WAITING_ARRAY;
+        }
+    }
+
+    static ListNode toListNode(List<Integer> list) {
+        ListNode head = null;
+        ListNode ptr = null;
+        for (int i : list) {
+            ListNode node = new ListNode(i);
+            if (ptr == null) {
+                head = node;
+            } else {
+                ptr.next = node;
+            }
+            ptr = node;
+        }
+        return head;
     }
 
     static boolean isNum(char c) {
@@ -183,16 +327,16 @@ class Data {
         if (o == Integer.class && c == int.class) {
             return true;
         }
-        if (o == Integer[].class && c == int[].class) {
-            return true;
+        if (o.getComponentType() != null && c.getComponentType() != null) {
+            return isSameType(o.getComponentType(), c.getComponentType());
         }
         return o == c;
     }
 
-    public String invoke(Method method, Object instance) {
+    public Object invoke(Method method, Object instance) {
         Object[] objs = objects.toArray();
         try {
-            return method.invoke(instance, objs).toString();
+            return method.invoke(instance, objs);
         } catch (InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
         }
