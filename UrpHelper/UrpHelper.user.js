@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         URP教务系统助手
 // @namespace    https://github.com/xfl03
-// @version      0.1.2
+// @version      0.1.3
 // @description  URP教务系统助手，用于辅助URP教务系统的使用
 // @author       xfl03
 // @match        http://urp.cup.edu.cn/student/teachingEvaluation/teachingEvaluation/evaluationPage
@@ -18,11 +18,21 @@
         //$("#RemainS").html(1);
 
         //提交倒计时结束自动提交
-        var m = parseInt($("#RemainM").html());
-        var s = parseInt($("#RemainS").html());
-        setTimeout(function(){
-            $("#buttonSubmit").click();
-        }, (m * 60 + s) * 1000);
+        function autoSubmit(){
+            var m = parseInt($("#RemainM").html());
+            var s = parseInt($("#RemainS").html());
+            var t = (m * 60 + s) * 1000;
+            console.log(t);
+            if (t == 0) {
+                console.log("Submit");
+                $("#buttonSubmit").click();
+                return;
+            }
+            setTimeout(function(){
+               autoSubmit();
+            }, t);
+        }
+        autoSubmit();
 
         //自动选择最优选项
         var keyWord=["优","很大进步","总是","个别最好的"];
@@ -37,7 +47,7 @@
         })
 
         //自动填写主观评价
-        var content="";//自行填写
+        var content="非常感谢老师您这一学期的幸苦付出！通过您的课程，我不仅学到了所需的知识，更是扩宽了自己的眼界，希望还能有机会继续参与您的课程。";//自行填写
         $("textarea").val(content);
     });
 })();
