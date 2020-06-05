@@ -1,0 +1,6 @@
+<wml>
+    <card id="main" title="Main">
+        <p mode="wrap">Main</p>
+        <img src="image.jpg"/>
+    </card>
+</wml>
