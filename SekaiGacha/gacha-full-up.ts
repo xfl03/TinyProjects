@@ -1,7 +1,7 @@
 const P = 0.4;
-const N = 3;
-const T = 1000000;
-const J = 1;
+const N = 1;
+const T = 10;
+const J = 10;
 const EXCHANGE = true;
 const SURE = J >= 10;
 
@@ -21,7 +21,7 @@ for (let t = 0; t < T; ++t) {
             let n = Math.floor(ran / P);
             if (n >= N) continue;
             set.add(n);
-            //console.log("Get:"+n);
+            console.log("Get:"+n);
         }
 
         if (SURE && star2 == 10) {
@@ -31,6 +31,7 @@ for (let t = 0; t < T; ++t) {
         }
 
         if (EXCHANGE && set.size >= N - Math.floor(i * J / 300)) {
+            //console.log("Exchange:" + i);
             sum += i;
             break;
         }
