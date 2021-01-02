@@ -17,3 +17,8 @@ export interface EventData {
     data: Data;
     message?: any;
 }
+
+export interface SimpleRanking {
+    time: Date,
+    pt: number
+}
