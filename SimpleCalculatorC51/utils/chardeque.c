@@ -3,6 +3,7 @@
  */
 #include <stdlib.h>
 #include "chardeque.h"
+#include "io.h"
 
 /*
  * 字符双向队列 - 新建双向队列
@@ -21,6 +22,8 @@ CharDeque createCharDeque() {
  * 字符双向队列 - 入队尾（入栈 & 入队）
  */
 void addLastCharDeque(CharDeque deque, char item) {
+    //writeChar('P');
+    //writeFloat(deque->lastPtr);
     //置入队尾数据，队尾指针后移
     deque->arr[deque->lastPtr++] = item;
 }

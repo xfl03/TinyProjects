@@ -4,7 +4,7 @@
 /*
  * 临时保存读取的字符
  */
-char c;
+char cMain;
 
 /*
  * 程序入口
@@ -16,7 +16,8 @@ int main() {
     initCalculator();
 
     //读取字符并逐字符交由计算器进行处理
-    while((c = readChar())) processChar(c);
+    while((cMain = readChar())) processChar(cMain);
+    //while ((cMain = readChar())) writeChar(cMain);
 
     //返回状态码
     return 0;

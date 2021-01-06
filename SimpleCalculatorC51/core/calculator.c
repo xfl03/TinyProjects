@@ -19,18 +19,21 @@ int state;
  * 输入数值双向队列
  * 存取包括小数点在内的输入数值
  */
+CharDequeStruct inputDequeStruct;
 CharDeque inputDeque;
 
 /*
  * 操作符栈
  * 存储操作符
  */
+CharDequeStruct operatorStackStruct;
 CharDeque operatorStack;
 
 /*
  * 操作数栈
  * 存储操作数值
  */
+FloatStackStruct numberStackStruct;
 FloatStack numberStack;
 
 /*
@@ -184,7 +187,10 @@ void processState(char c) {
  */
 void processChar(char c) {
     //如果输入为C则初始化计算器，否则进行状态处理
-    if (c == 'C') initCalculator();
+    if (c == 'C') {
+        initCalculator();
+        clearScreen();
+    }
     else processState(c);
 }
 
@@ -276,11 +282,14 @@ float parseFloat(CharDeque deque) {
     float number = 0;
     //是否含有小数部分
     bool hasRight = false;
+    //clearScreen();
 
     //从头到尾遍历队列获取整数值
     while (!isEmptyCharDeque(deque)) {
         //获取队首元素
         char num = removeFirstCharDeque(deque);
+        //writeChar(num);
+        //writeChar('L');
 
         //如果读取到小数点，则改变标志并结束遍历
         if (num == '.') {
@@ -301,6 +310,8 @@ float parseFloat(CharDeque deque) {
         while (!isEmptyCharDeque(deque)) {
             //获取队尾元素
             char num = removeLastCharDeque(deque);
+            //writeChar(num);
+            //writeChar('R');
 
             //将数值存入小数部分
             right = right / 10 + (float) (num - '0');
@@ -312,6 +323,7 @@ float parseFloat(CharDeque deque) {
 
     //初始化输入数队列，以便再次输入
     clearCharDeque(deque);
+    //writeFloat(number);
 
     //返回解析值
     return number;
@@ -351,8 +363,9 @@ int getPriority(char op) {
 void handleError(string msg) {
     //初始化计算器
     initCalculator();
-    //清屏并输出错误信息
+    //清屏
     clearScreen();
+    //输出错误信息
     writeString(msg);
 }
 
@@ -362,12 +375,16 @@ void handleError(string msg) {
 void initCalculator() {
     //状态机状态设为初态
     state = 0;
+
     //初始化输入数值双向队列
-    if (inputDeque) clearCharDeque(inputDeque); else inputDeque = createCharDeque();
+    inputDeque = &inputDequeStruct;
+    clearCharDeque(inputDeque);
     //初始化操作符栈
-    if (operatorStack) clearCharDeque(operatorStack); else operatorStack = createCharDeque();
+    operatorStack = &operatorStackStruct;
+    clearCharDeque(operatorStack);
     //初始化操作数栈
-    if (numberStack) clearFloatStack(numberStack); else numberStack = createFloatStack();
+    numberStack = &numberStackStruct;
+    clearFloatStack(numberStack);
 }
 
 /*
