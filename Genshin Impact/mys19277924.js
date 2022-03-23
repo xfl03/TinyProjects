@@ -14,7 +14,7 @@
  */
 const baseAttack = 1016;
 const bonusAttack = 311;
-const bonusAttackPercent = 46.6 + 40;
+const bonusAttackPercent = 46.6;
 
 /*
  * 暴击相关信息
@@ -31,7 +31,7 @@ const extraCriticalRate = 3.9;
 const extraCriticalDamageRate = 7.8;
 
 function getDamage(attack, critical, criticalDamage) {
-    return attack * (1 + Math.min(critical, 100) * criticalDamage);
+    return attack * (1 + Math.min(critical, 100) / 100 * criticalDamage / 100);
 }
 
 function getAttack(attackPercent) {
@@ -47,6 +47,8 @@ function getCriticalDamage(criticalDamagePercent) {
 }
 
 let maxDamage = 0;
+let maxDamageArr = [];
+let maxDamageInfo = [];
 
 function judgeDamage(arr) {
     let info = [
@@ -57,7 +59,8 @@ function judgeDamage(arr) {
     let damage = getDamage(info[0], info[1], info[2]);
     if (damage < maxDamage) return;
     maxDamage = damage;
-    console.log(`${damage} ${arr} ${info}`)
+    maxDamageArr = arr.slice();
+    maxDamageInfo = info.slice();
 }
 
 function dfs(arr, pos) {
@@ -73,5 +76,5 @@ function dfs(arr, pos) {
         dfs(arr, pos + 1);
     })
 }
-judgeDamage([17, 10, 10])
 dfs([0, 0, 0], 0);
+console.log(`${maxDamage} ${maxDamageArr} ${maxDamageInfo}`)
